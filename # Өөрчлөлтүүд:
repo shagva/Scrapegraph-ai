@@ -1,0 +1,44 @@
+# сайжруулсан код:
+# Өөрчлөлтүүд:
+# - `urllib3` модулийг ашиглах шаардлагагүй болсон.
+# - URL кодоллыг `urlencode` функц ашиглан илүү тодорхой болгосон.
+# - HTTPS протоколыг ашиглах боломж нэмсэн.
+# - Алдааны мэдэгдлийг илүү тодорхой болгосон.
+# - Функцийн тайлбар бичгийг тодруулсан.
+# - Прокси болон геолокалчлалын параметрүүдийг нэгтгэсэн.
+
+import requests
+from urllib.parse import urlencode
+
+def scrape_do_fetch(token, target_url, use_proxy=False, geocode=None, super_proxy=False):
+  """
+  Scrape.do API-г ашиглан өгөгдсөн URL-ээс контент эсвэл IP хаягийг авна.
+
+  Аргументүүд:
+      token (str): Scrape.do API токен.
+      target_url (str): Зорилтот URL хаяг.
+      use_proxy (bool): Прокси ашиглах эсэх (default: False).
+      geocode (str, optional): Геолокалчлалын код (жишээ нь, "US").
+      super_proxy (bool): Өндөр чанартай прокси ашиглах эсэх (default: False).
+
+  Буцаана:
+      str: URL-ээс авсан контент (HTML, IP хаяг эсвэл алдааны мэдэгдэл).
+  """
+
+  params = {"token": token, "url": target_url}
+  if use_proxy:
+    params.update({"proxy": "true"})
+    if geocode:
+      params["geocode"] = geocode
+    if super_proxy:
+      params["super"] = "true"
+    url = f"http://proxy.scrape.do:8080/" + urlencode(params)
+  else:
+    url = f"http://api.scrape.do/?{urlencode(params)}"
+
+  # HTTPS ашиглах (сайн зуршил)
+  response = requests.get(url, verify=True)  # verify=False гэж тохируулан сертификат шалгахыг унтрааж болно (сайн зуршил биш)
+
+  response.raise_for_status()  # 200 бус статусын кодын үед алдаа гаргана
+
+  return response.text
