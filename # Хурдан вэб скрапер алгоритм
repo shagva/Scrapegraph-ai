@@ -1,0 +1,43 @@
+# Хурдан вэб скрапер алгоритм
+
+import requests
+from bs4 import BeautifulSoup
+import asyncio
+import aiohttp
+
+async def fetch_page(session, url):
+    async with session.get(url) as response:
+        response.raise_for_status()
+        return await response.text()
+
+async def parse_page(html_content):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    # Скрапинг хийх логик энд орно
+    # Жишээ нь:
+    titles = soup.find_all('h2')
+    links = soup.find_all('a')
+    # ...
+    return titles, links
+
+async def main(urls):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for url in urls:
+            tasks.append(asyncio.create_task(fetch_page(session, url)))
+
+        html_contents = await asyncio.gather(*tasks)
+
+        tasks = []
+        for html_content in html_contents:
+            tasks.append(asyncio.create_task(parse_page(html_content)))
+
+        results = await asyncio.gather(*tasks)
+        # Бүх үр дүнг нэгтгэх эсвэл хадгалах логик энд орно
+
+if __name__ == "__main__":
+    urls = [
+        "https://example.com/page1",
+        "https://example.com/page2",
+        # ...
+    ]
+    asyncio.run(main(urls))
